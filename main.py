@@ -11,6 +11,15 @@ class map():
         
         self.F = np.empty(np.shape(self.Map), dtype = float)
         self.F.fill(np.inf)
+        
+        self.start = (0,0)
+        self.end = (3,5)
+        
+        self.open_list = []
+        self.closed_list = []
+        
+        # self.open_list.append(self.start)
+        
         self.openF = np.empty(np.shape(self.Map), dtype = float)
         self.openF.fill(np.inf)
         self.open = self.Map.copy()
@@ -22,8 +31,7 @@ class map():
         self.parrents = np.empty((np.shape(self.open)[0],np.shape(self.open)[1],2), dtype = int)
         self.parrents.fill(0)
         
-        self.start = np.array((0,0))
-        self.end = np.array((3,5))
+  
         
         self.update(self.start,self.start)
         
@@ -32,8 +40,11 @@ class map():
         
         
     def update(self,pos2,pos1):
+        if  not pos1 in self.closed_list:
+            self.open_list.append(pos1)
+            
         H = self.H[pos2[0]][pos2[1]] + np.linalg.norm(np.array(pos2)-np.array(pos1)) #self.parrents[pos1[0]][pos1[1]]
-        G = np.linalg.norm(self.end-pos1)
+        G = np.linalg.norm(np.array(self.end)-np.array(pos1))
         
         # F = self.H[pos1[0]][pos1[1]] + np.linalg.norm(self.end-pos1)
         F = H + G
@@ -84,8 +95,27 @@ map = map()
 # Для соседей точки вычисляется H,F 
 # Если из нее до любого из ее соседей добраться быстрее (меньше F), то для соседа обновляется H, F, parrent
 
+# Удалять из open то, что в closed(min_pos)
+
 while map.F[map.end[0]][map.end[1]] == np.inf:
-    min_pos = (np.unravel_index(np.argmin(map.openF),map.shape))
+    # min_pos = (np.unravel_index(np.argmin(map.openF),map.shape))
+    
+    F = np.inf
+    min_pos = (0,0)
+    for ind in map.open_list:
+        F_current = map.F[ind]
+        if  F_current < F:
+            F = F_current
+            min_pos = ind
+            
+    # try: 
+    del map.open_list[map.open_list.index(min_pos)]
+    # except ValueError:
+    #     pass
+    
+        
+    map.closed_list.append(min_pos)
+    
     neibours = get_neibors(min_pos,map)
     for neibour in neibours:
         map.update(min_pos, neibour)
